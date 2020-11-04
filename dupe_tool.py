@@ -142,7 +142,7 @@ def write_file(filename, contents):
 			f.write(contents)
 			print(filename.name)
 
-def text_assets(values):
+def text_assets(cms, values):
 	OIDs_input = values['OIDS']
 	NIDs_input = values['NIDS']
 	dst_path = values['DST']
@@ -170,7 +170,7 @@ def text_assets(values):
 							path=dst_path)
 		print('# finished run\n')
 
-def image_assets(values):
+def image_assets(cms, values):
 	OIDs_input = values['OIDS']
 	NIDs_input = values['NIDS']
 	dst_path = values['DST']
@@ -194,7 +194,7 @@ def image_assets(values):
 								url=url, 
 								path=dst_path)
 
-def article_links(NIDs_input):
+def article_links(cms, NIDs_input):
 	if not NIDs_input:
 		print('No new dupe IDs entered')
 	else:
@@ -226,11 +226,11 @@ def ID_selection(cms):
 		if event in ('Cancel', None):
 			break
 		if event == 'HTML + TXT':
-			text_assets(values)
+			text_assets(cms, values)
 		if event == 'Images': # find a way of not duplicating this code
-			image_assets(values)
+			image_assets(cms, values)
 		if event == 'Links':
-			article_links(NIDs_input=values['NIDS'])
+			article_links(cms, NIDs_input=values['NIDS'])
 
 	window.close()
 
