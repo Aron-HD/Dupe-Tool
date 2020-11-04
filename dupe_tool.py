@@ -8,6 +8,7 @@ chrome_options.add_argument(r"user-data-dir=C:\Users\arondavidson\AppData\Local\
 # chrome_options.add_argument('--headless')
 # chrome_options.add_argument("--start-maximized")
 
+
 class CMSBot:
 	def __init__(self):
 		self.bot = webdriver.Chrome(options=chrome_options,
