@@ -142,6 +142,67 @@ def write_file(filename, contents):
 			f.write(contents)
 			print(filename.name)
 
+def text_assets(values):
+	OIDs_input = values['OIDS']
+	NIDs_input = values['NIDS']
+	dst_path = values['DST']
+
+	if not OIDs_input:
+		print('No old dupe IDs entered')
+	elif not NIDs_input:
+		print('No new dupe IDs entered')
+	elif not dst_path:
+		print('No destination path entered')
+	else:
+		for x in SUBS.keys():
+			if values[x] == True:
+				award = x
+		IDs = zip(
+			[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in OIDs_input.strip().split('\n')],
+			[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in NIDs_input.strip().split('\n')]
+		)
+		print(f"# creating in:\n# '{dst_path}'")
+		for old, new in IDs:
+			cms.edit_id(old)
+			cms.get_info(new_ID=new,
+							old_ID=old,
+							award=award,
+							path=dst_path)
+		print('# finished run\n')
+
+def image_assets(values):
+	OIDs_input = values['OIDS']
+	NIDs_input = values['NIDS']
+	dst_path = values['DST']
+
+	if not OIDs_input:
+		print('No old dupe IDs entered')
+	if not NIDs_input:
+		print('No new dupe IDs entered')
+	elif not dst_path:
+		print('No destination path entered')
+	else:
+		IDs = zip(
+			[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in OIDs_input.strip().split('\n')],
+			[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in NIDs_input.strip().split('\n')]
+		)
+		for old, new in IDs:
+			cms.edit_id(old)
+			url = cms.get_url(old)
+			time.sleep(1)
+			cms.save_images(new_ID=new, 
+								url=url, 
+								path=dst_path)
+
+def article_links(NIDs_input):
+	if not NIDs_input:
+		print('No new dupe IDs entered')
+	else:
+		IDs = [int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in NIDs_input.strip().split('\n')]
+		for i in IDs:
+			cms.edit_id(i)
+			print(cms.get_url(i))			
+
 def ID_selection(cms):
 	layout = [
 		# [sg.Output(size=(140,18))],
@@ -165,68 +226,11 @@ def ID_selection(cms):
 		if event in ('Cancel', None):
 			break
 		if event == 'HTML + TXT':
-
-			OIDs_input = values['OIDS']
-			NIDs_input = values['NIDS']
-			dst_path = values['DST']
-
-			if not OIDs_input:
-				print('No old dupe IDs entered')
-			elif not NIDs_input:
-				print('No new dupe IDs entered')
-			elif not dst_path:
-				print('No destination path entered')
-			else:
-				for x in SUBS.keys():
-					if values[x] == True:
-						award = x
-				IDs = zip(
-					[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in OIDs_input.strip().split('\n')],
-					[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in NIDs_input.strip().split('\n')]
-				)
-				print(f"# creating in:\n# '{dst_path}'")
-				for old, new in IDs:
-					cms.edit_id(old)
-					cms.get_info(new_ID=new,
-									old_ID=old,
-									award=award,
-									path=dst_path)
-				print('# finished run\n')
-
+			text_assets(values)
 		if event == 'Images': # find a way of not duplicating this code
-
-			OIDs_input = values['OIDS']
-			NIDs_input = values['NIDS']
-			dst_path = values['DST']
-
-			if not OIDs_input:
-				print('No old dupe IDs entered')
-			if not NIDs_input:
-				print('No new dupe IDs entered')
-			elif not dst_path:
-				print('No destination path entered')
-			else:
-				IDs = zip(
-					[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in OIDs_input.strip().split('\n')],
-					[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in NIDs_input.strip().split('\n')]
-				)
-				for old, new in IDs:
-					cms.edit_id(old)
-					url = cms.get_url(old)
-					time.sleep(1)
-					cms.save_images(new_ID=new, 
-										url=url, 
-										path=dst_path)
+			image_assets(values)
 		if event == 'Links':
-			NIDs_input = values['NIDS']
-			if not NIDs_input:
-				print('No new dupe IDs entered')
-			else:
-				IDs = [int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in NIDs_input.strip().split('\n')]
-				for i in IDs:
-					cms.edit_id(i)
-					print(cms.get_url(i))
-
+			article_links(NIDs_input=values['NIDS'])
 
 	window.close()
 
