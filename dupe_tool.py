@@ -142,35 +142,7 @@ def write_file(filename, contents):
 			f.write(contents)
 			print(filename.name)
 
-def text_assets(cms, values):
-	OIDs_input = values['OIDS']
-	NIDs_input = values['NIDS']
-	dst_path = values['DST']
-
-	if not OIDs_input:
-		print('No old dupe IDs entered')
-	elif not NIDs_input:
-		print('No new dupe IDs entered')
-	elif not dst_path:
-		print('No destination path entered')
-	else:
-		for x in SUBS.keys():
-			if values[x] == True:
-				award = x
-		IDs = zip(
-			[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in OIDs_input.strip().split('\n')],
-			[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in NIDs_input.strip().split('\n')]
-		)
-		print(f"# creating in:\n# '{dst_path}'")
-		for old, new in IDs:
-			cms.edit_id(old)
-			cms.get_info(new_ID=new,
-							old_ID=old,
-							award=award,
-							path=dst_path)
-		print('# finished run\n')
-
-def image_assets(cms, values):
+def dupe_assets(cms, event, values):
 	OIDs_input = values['OIDS']
 	NIDs_input = values['NIDS']
 	dst_path = values['DST']
@@ -186,13 +158,28 @@ def image_assets(cms, values):
 			[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in OIDs_input.strip().split('\n')],
 			[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in NIDs_input.strip().split('\n')]
 		)
+		print(f"# creating in:\n# '{dst_path}'")
 		for old, new in IDs:
 			cms.edit_id(old)
-			url = cms.get_url(old)
-			time.sleep(1)
-			cms.save_images(new_ID=new, 
-								url=url, 
-								path=dst_path)
+			if event == 'Images':
+				url = cms.get_url(old)
+				time.sleep(0.5)
+				cms.save_images(
+					new_ID=new, 
+					url=url, 
+					path=dst_path
+				)
+			elif event == 'Text':
+				for x in SUBS.keys():
+					if values[x] == True:
+						award = x
+				cms.get_info(
+					new_ID=new,
+					old_ID=old,
+					award=award,
+					path=dst_path
+				)
+		print('# finished run\n')
 
 def article_links(cms, NIDs_input):
 	if not NIDs_input:
@@ -215,7 +202,7 @@ def ID_selection(cms):
 		[sg.InputText(do_not_clear=True, key='OIDS')],
 		[sg.Text('Paste NEW dupe IDs:')],
 		[sg.InputText(do_not_clear=True, key='NIDS')],
-		[sg.Button('HTML + TXT'), sg.Button('Images'), sg.Button('Links'), sg.Cancel()]
+		[sg.Button('Text'), sg.Button('Images'), sg.Button('Links'), sg.Cancel()]
 	]
 	window = sg.Window('Article Links',
 								layout,
@@ -225,10 +212,8 @@ def ID_selection(cms):
 		event, values = window.read()
 		if event in ('Cancel', None):
 			break
-		if event == 'HTML + TXT':
-			text_assets(cms, values)
-		if event == 'Images': # find a way of not duplicating this code
-			image_assets(cms, values)
+		if event == 'Text' or event == 'Images':
+			dupe_assets(cms, event, values)
 		if event == 'Links':
 			article_links(cms, NIDs_input=values['NIDS'])
 
@@ -238,7 +223,7 @@ def main():
 	"""
 	For proofing dupe articles easier.
 
-	HTML + TXT needs Path, OLD dupe ids and NEW Dupe ids
+	Text needs Path, OLD dupe ids and NEW Dupe ids
 	"""
 	cms = CMSBot()
 	try:
