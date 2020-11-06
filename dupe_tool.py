@@ -1,8 +1,11 @@
-import PySimpleGUI as sg, time, urllib.request
+import PySimpleGUI as sg, json
+import urllib.request, time as t
 from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.action_chains import ActionChains
 chrome_options = Options()
 chrome_options.add_argument(r"user-data-dir=C:\Users\arondavidson\AppData\Local\Google\Chrome\User Data\Profile 1")
 # chrome_options.add_argument('--headless')
@@ -25,39 +28,39 @@ class CMSBot:
 		legid.send_keys(Keys.RETURN)
 
 
-	def get_info(self, award, path, new_ID, old_ID):
+	def get_info(self, SUBS, award, path, new_ID, old_ID):
 		b = self.bot
 
-		def scroll():
-			b.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+		def scroll(element):
+			actions = ActionChains(b)
+			actions.move_to_element(element).perform()
 		
 		new_dir = Path(f"{path}/{new_ID}")
 		new_dir.mkdir(parents=False, exist_ok=True)
 		abs_fn = new_dir / f"{new_ID}.txt"
 		htm_fn = new_dir / f"{new_ID}.htm"
-
-		scroll()
 		# grab text from summary
-		b.find_element_by_link_text('Summary (English)').click()
-		# print("clicked [Summary] (Expand)")
+		summary = b.find_element_by_link_text('Summary (English)')
+		scroll(summary)
+		summary.click()
 		summary_text = b.find_element_by_id('ParagraphSummary').text
-		# time.sleep(1)
 		# # write summary text to new txt file named after new ID
 		write_file(abs_fn, summary_text)
-		scroll()
 		# grab html from source code
-		b.find_element_by_link_text('Content body (English)').click()
-		# print("clicked [Content body (English)] (Expand)")
-		# time.sleep(1)
+		body = b.find_element_by_link_text('Content body (English)')
+		scroll(body)
+		body.click()
 		b.find_element_by_id('HtmlContent-Editor-source-code').click()
-		# print("clicked [Source code] (Expand)")
 		body_html = b.find_element_by_id('source-code-textarea').text
 
-		amended_html = amend_content(award=award,
-									new_ID=new_ID,
-									old_ID=old_ID,
-									content=body_html)
-		time.sleep(0.5)
+		amended_html = amend_content(
+							SUBS=SUBS,
+							award=award,
+							new_ID=new_ID,
+							old_ID=old_ID,
+							content=body_html
+						)
+		t.sleep(0.5)
 		# # write html text to new htm file named after new ID
 		write_file(htm_fn, amended_html)
 
@@ -69,7 +72,7 @@ class CMSBot:
 	def save_images(self, new_ID, url, path):
 		b = self.bot
 		b.get(url)
-		time.sleep(1)
+		t.sleep(1)
 		# get the image source
 		imgs = b.find_elements_by_class_name('ArticleImages')
 		if len(imgs) > 0:
@@ -82,48 +85,11 @@ class CMSBot:
 				print(src.split('/')[-1], "--->", fn.split(r'\\')[-1])
 				# download the image
 				urllib.request.urlretrieve(src, filename=fp)
-			time.sleep(1)
+			t.sleep(1)
 		else:
 			print(url, "- no images or need to log in")
 
-
-
-SUBS = {
-	"WARC Awards": {
-		"market": "<h3>Market background and objectives</h3>",
-		"objectives": "<h5>Objectives</h5>",
-		"insight": "<h3>Insight and strategic thinking</h3>",
-		"execution": "<h3>Implementation, including creative and media development</h3>",
-		"results": "<h3>Performance against objectives</h3>",
-		"code": "/WARC-AWARDS"
-	},
-	"MENA Prize": {
-		"market": "<h3>Market background and cultural context</h3>",
-		"objectives": "<h3>Objectives</h3>",
-		"insight": "<h3>Insight and strategic thinking</h3>",
-		"execution": "<h3>Creative and/or channel execution</h3>",
-		"results": "<h3>Performance against objectives</h3>",
-		"code": "/WARC-PRIZE-MENA"
-	},
-	"Asia Prize": {
-		"market": "<h3>Market background and cultural context</h3>",
-		"objectives": "<h3>Objectives</h3>",
-		"insight": "<h3>Insight and strategic thinking</h3>",
-		"execution": "<h3>Creative and/or channel execution</h3>",
-		"results": "<h3>Performance against objectives</h3>",
-		"code": "/WARC-PRIZE-ASIA"
-	},
-	"Media Awards": {
-		"market": "<h3>Market background and context</h3>",
-		"objectives": "<h3>Communications objectives</h3>",
-		"insight": "<h3>Insights and strategy</h3>",
-		"execution": "<h3>Implementation and optimisation</h3>",
-		"results": "<h3>Measurement approach and results</h3>",
-		"code": "/WARC-AWARDS-MEDIA"
-	}
-}
-
-def amend_content(award, new_ID, old_ID, content):
+def amend_content(SUBS, award, new_ID, old_ID, content):
 	# replace subheadings according to the award the dupes have been entered to
 	for i in SUBS.keys():
 		if i != award:
@@ -142,7 +108,7 @@ def write_file(filename, contents):
 			f.write(contents)
 			print(filename.name)
 
-def dupe_assets(cms, event, values):
+def dupe_assets(SUBS, cms, event, values):
 	OIDs_input = values['OIDS']
 	NIDs_input = values['NIDS']
 	dst_path = values['DST']
@@ -163,7 +129,7 @@ def dupe_assets(cms, event, values):
 			cms.edit_id(old)
 			if event == 'Images':
 				url = cms.get_url(old)
-				time.sleep(0.5)
+				t.sleep(0.5)
 				cms.save_images(
 					new_ID=new, 
 					url=url, 
@@ -174,6 +140,7 @@ def dupe_assets(cms, event, values):
 					if values[x] == True:
 						award = x
 				cms.get_info(
+					SUBS=SUBS,
 					new_ID=new,
 					old_ID=old,
 					award=award,
@@ -190,7 +157,7 @@ def article_links(cms, NIDs_input):
 			cms.edit_id(i)
 			print(cms.get_url(i))			
 
-def ID_selection(cms):
+def ID_selection(SUBS, cms):
 	layout = [
 		# [sg.Output(size=(140,18))],
 		[sg.Frame(layout=[*[[sg.Radio(x, 'Award', key=x, default=True)] for x in SUBS.keys()]], # .upper().split(' ')[0]
@@ -213,7 +180,7 @@ def ID_selection(cms):
 		if event in ('Cancel', None):
 			break
 		if event == 'Text' or event == 'Images':
-			dupe_assets(cms, event, values)
+			dupe_assets(SUBS, cms, event, values)
 		if event == 'Links':
 			article_links(cms, NIDs_input=values['NIDS'])
 
@@ -226,8 +193,14 @@ def main():
 	Text needs Path, OLD dupe ids and NEW Dupe ids
 	"""
 	cms = CMSBot()
+
+	with open('substitutes.json') as f:
+		SUBS = json.load(f)
+
 	try:
-		ID_selection(cms)
+		ID_selection(SUBS, cms)
+	except NoSuchElementException as e:
+		print('Could not find elementn', e)
 	except Exception:
 		raise
 	finally:
