@@ -21,8 +21,8 @@ def write_file(filename, contents):
 			print(filename.name)
 
 def dupe_assets(SUBS, cms, event, values):
-	OIDs_input = values['OIDS']
-	NIDs_input = values['NIDS']
+	OIDs_input = values['OIDS'].strip().split('\n')
+	NIDs_input = values['NIDS'].strip().split('\n')
 	dst_path = values['DST']
 
 	if not OIDs_input:
@@ -32,51 +32,61 @@ def dupe_assets(SUBS, cms, event, values):
 	elif not dst_path:
 		print('No destination path entered')
 	else:
-		IDs = zip(
-			[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in OIDs_input.strip().split('\n')],
-			[int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in NIDs_input.strip().split('\n')]
-		)
-		print(f"# creating in:\n# '{dst_path}'")
+		try:
+			IDs = zip(
+				list(map(int, filter((lambda s: s if len(s)==6 else print('IDs must be 6 digits')), OIDs_input))),
+				list(map(int, filter((lambda s: s if len(s)==6 else print('IDs must be 6 digits')), NIDs_input)))
+			)
+			print(f"# creating in:\n# '{dst_path}'")
 
-		for old, new in IDs:
-			
-			cms.edit_id(old)
-
-			if event == 'Images':
+			for old, new in IDs:
 				
-				url = cms.get_url(old)
+				cms.edit_id(old)
 
-				cms.save_images(path=dst_path,
-								new_ID=new,
-								url=url)
+				if event == 'Images':
+					
+					url = cms.get_url(old)
 
-			elif event == 'Text':
-				
-				for x in SUBS.keys():
-					if values[x] == True:
-						award = x
+					cms.save_images(path=dst_path,
+									new_ID=new,
+									url=url)
 
-				body_html, summary_text, abs_fn, htm_fn = cms.get_content(path=dst_path,
-																		new_ID=new)
-				amended_html = amend_content(content=body_html,
-												award=award,
-												new_ID=new,
-												old_ID=old,
-												SUBS=SUBS)
-				# write summary text to new txt file named after new ID
-				# write html text to new htm file named after new ID
-				[write_file(k, v) for k, v in [(abs_fn, summary_text),(htm_fn, amended_html)]]
+				elif event == 'Text':
+					
+					for x in SUBS.keys():
+						if values[x] == True:
+							award = x
 
-		print('# finished run\n')
+					body_html, summary_text, abs_fn, htm_fn = cms.get_content(path=dst_path,
+																			new_ID=new)
+					amended_html = amend_content(content=body_html,
+													award=award,
+													new_ID=new,
+													old_ID=old,
+													SUBS=SUBS)
+					# write summary text to new txt file named after new ID
+					# write html text to new htm file named after new ID
+					[write_file(k, v) for k, v in [(abs_fn, summary_text),(htm_fn, amended_html)]]
+
+			print('# finished run\n')
+
+		except ValueError as e:
+			print("ValueError - New IDs must be integers of 6 digits:\n", e)
 
 def article_links(cms, NIDs_input):
 	if not NIDs_input:
 		print('No new dupe IDs entered')
-	else:
-		IDs = [int(x) if len(x) == 6 else print(x, 'ID not valid 6 digits') for x in NIDs_input.strip().split('\n')]
-		for i in IDs:
-			cms.edit_id(i)
-			print(cms.get_url(i))			
+	else: 
+		try:
+			NIDs = NIDs_input.strip().split('\n')
+			# filter valid 6 digit IDs then map to integers
+			IDs = list(map(int,	filter(
+					(lambda s: s if len(s)==6 else print('IDs must be 6 digits')), NIDs)))
+			for i in IDs:
+				cms.edit_id(i)
+				print(cms.get_url(i))			
+		except ValueError as e:
+			print("ValueError - New IDs must be integers of 6 digits:\n", e)
 
 def ID_selection(SUBS, cms):
 	layout = [
@@ -100,7 +110,7 @@ def ID_selection(SUBS, cms):
 		event, values = window.read()
 		if event in ('Cancel', None):
 			break
-		if event == 'Text' or event == 'Images':	 
+		if event in ('Text', 'Images'):	 
 			dupe_assets(cms=cms,
 						SUBS=SUBS, 
 						event=event, 
