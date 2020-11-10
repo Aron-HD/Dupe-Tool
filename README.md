@@ -23,7 +23,7 @@ Currently all three run indepentently for more control, but may link them togeth
 ### ToDo 
 
 - create function to write urls to a csv file or text file
-- replace GUI window inputs for IDs with multilines and use streamline map / filter
+- replace GUI window inputs for IDs with multilines 
 
 ### Completed improvements
 
@@ -33,3 +33,4 @@ Currently all three run indepentently for more control, but may link them togeth
 - added NoSuchElement exception handler
 - replaced scroll() function with `ActionChains.move_to_element().perform` as more accurate to scroll elements into view
 - cut CMSbot class to new file and split GUI + other functions
+- streamlined ID splitting and iterating through map / filter with error handling
