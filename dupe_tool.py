@@ -20,18 +20,18 @@ def write_file(filename, contents):
 			f.write(contents)
 			print(filename.name)
 
-def dupe_assets(SUBS, cms, event, values):
-	OIDs_input = values['OIDS'].strip().split('\n')
-	NIDs_input = values['NIDS'].strip().split('\n')
-	dst_path = values['DST']
-
-	if not OIDs_input:
-		print('No old dupe IDs entered')
-	if not NIDs_input:
-		print('No new dupe IDs entered')
-	elif not dst_path:
-		print('No destination path entered')
+def get_ids(vals, msg):
+	if not vals:
+		print(msg)
 	else:
+		return vals
+
+def dupe_assets(SUBS, cms, event, values):
+	OIDs_input = get_ids(values['OIDS'].strip().split('\n'), 'No old dupe IDs entered')
+	NIDs_input = get_ids(values['NIDS'].strip().split('\n'), 'No new dupe IDs entered')
+	dst_path = get_ids(values['DST'], 'No destination path entered')
+
+	if all([OIDs_input ,NIDs_input ,dst_path]):
 		try:
 			IDs = zip(
 				list(map(int, filter((lambda s: s if len(s)==6 else print('IDs must be 6 digits')), OIDs_input))),
