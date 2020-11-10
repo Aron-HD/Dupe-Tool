@@ -34,3 +34,4 @@ Currently all three run indepentently for more control, but may link them togeth
 - replaced scroll() function with `ActionChains.move_to_element().perform` as more accurate to scroll elements into view
 - cut CMSbot class to new file and split GUI + other functions
 - streamlined ID splitting and iterating through map / filter with error handling
+- streamlined if / else block with error printing in dupe_assets()
