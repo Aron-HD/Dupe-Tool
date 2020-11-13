@@ -1,0 +1,34 @@
+{
+   "WARC Awards": {
+      "market": "<h3>Market background and objectives</h3>",
+      "objectives": "<h5>Objectives</h5>",
+      "insight": "<h3>Insight and strategic thinking</h3>",
+      "execution": "<h3>Implementation, including creative and media development</h3>",
+      "results": "<h3>Performance against objectives</h3>",
+      "code": "/WARC-AWARDS"
+   },
+   "MENA Prize": {
+      "market": "<h3>Market background and cultural context</h3>",
+      "objectives": "<h3>Objectives</h3>",
+      "insight": "<h3>Insight and strategic thinking</h3>",
+      "execution": "<h3>Creative and/or channel execution</h3>",
+      "results": "<h3>Performance against objectives</h3>",
+      "code": "/WARC-PRIZE-MENA"
+   },
+   "Asia Prize": {
+      "market": "<h3>Market background and cultural context</h3>",
+      "objectives": "<h3>Objectives</h3>",
+      "insight": "<h3>Insight and strategic thinking</h3>",
+      "execution": "<h3>Creative and/or channel execution</h3>",
+      "results": "<h3>Performance against objectives</h3>",
+      "code": "/WARC-PRIZE-ASIA"
+   },
+   "Media Awards": {
+      "market": "<h3>Market background and context</h3>",
+      "objectives": "<h3>Communications objectives</h3>",
+      "insight": "<h3>Insights and strategy</h3>",
+      "execution": "<h3>Implementation and optimisation</h3>",
+      "results": "<h3>Measurembent approach and results</h3>",
+      "code": "/WARC-AWARDS-MEDIA"
+   }
+}

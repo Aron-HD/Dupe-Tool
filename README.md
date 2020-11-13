@@ -23,11 +23,15 @@ Currently all three run indepentently for more control, but may link them togeth
 ### ToDo 
 
 - create function to write urls to a csv file or text file
-- change SUBS dict as a JSON file and read in
-- cut CMSbot class split GUI + other functions and import it as a separate file
-- replace GUI window inputs for IDs with multilines and use streamline map / filter
+- replace GUI window inputs for IDs with multilines 
 
 ### Completed improvements
 
 - tidied if blocks under window events into functions
 - reduced duplication of code around zipping lists under different events
+- changed SUBS dict as a JSON file and read in
+- added NoSuchElement exception handler
+- replaced scroll() function with `ActionChains.move_to_element().perform` as more accurate to scroll elements into view
+- cut CMSbot class to new file and split GUI + other functions
+- streamlined ID splitting and iterating through map / filter with error handling
+- streamlined if / else block with error printing in dupe_assets()
